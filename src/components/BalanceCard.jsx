@@ -18,7 +18,7 @@ function BalanceCard({ balanceInfo }) {
             {balanceInfo.debtor} 欠
           </p>
           <p className="text-3xl font-bold text-red-500">
-            ${balanceInfo.amount.toFixed(2)}
+            ${balanceInfo.amount}
           </p>
         </div>
         <div className="text-right">
@@ -26,7 +26,7 @@ function BalanceCard({ balanceInfo }) {
             {balanceInfo.creditor} 被欠
           </p>
           <p className="text-3xl font-bold text-green-500">
-            ${balanceInfo.amount.toFixed(2)}
+            ${balanceInfo.amount}
           </p>
         </div>
       </div>

@@ -33,7 +33,7 @@ function ExpenseList({ expenses }) {
                   </div>
                   {expense.amount > 0 && (
                     <p className="text-2xl font-bold text-yellow-600">
-                      ${expense.amount.toFixed(2)}
+                      ${expense.amount}
                     </p>
                   )}
                 </div>
@@ -42,8 +42,8 @@ function ExpenseList({ expenses }) {
           }
 
           const displayAmount = expense.splitType === 'split' 
-            ? (expense.amount / 2).toFixed(2) 
-            : expense.amount.toFixed(2);
+            ? Math.round(expense.amount / 2)
+            : expense.amount;
 
           return (
             <div
