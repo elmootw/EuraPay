@@ -9,13 +9,16 @@ function BalanceCard({ balanceInfo }) {
     );
   }
 
+  const debtorEmoji = balanceInfo.debtor === 'Elmo' ? '🤡' : '😺';
+  const creditorEmoji = balanceInfo.creditor === 'Elmo' ? '🤡' : '😺';
+
   return (
     <div className="bg-white rounded-lg p-6 shadow-md border-l-4 border-milktea-500">
       <p className="text-gray-600 text-sm mb-2">{balanceInfo.label}</p>
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <p className="text-red-600 font-bold text-xl">
-            {balanceInfo.debtor} 欠
+            {debtorEmoji} {balanceInfo.debtor} 欠
           </p>
           <p className="text-3xl font-bold text-red-500">
             ${balanceInfo.amount}
@@ -23,7 +26,7 @@ function BalanceCard({ balanceInfo }) {
         </div>
         <div className="text-right">
           <p className="text-green-600 font-bold text-xl">
-            {balanceInfo.creditor} 被欠
+            {creditorEmoji} {balanceInfo.creditor} 被欠
           </p>
           <p className="text-3xl font-bold text-green-500">
             ${balanceInfo.amount}
