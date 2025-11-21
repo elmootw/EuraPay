@@ -2,7 +2,7 @@
   "name": "eurapay",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://elmohsiao.github.io/eurapay",
+  "homepage": "https://elmohsiao.github.io/EuraPay",
   "dependencies": {
     "axios": "^1.6.0",
     "date-fns": "^3.0.0",
