@@ -37,13 +37,20 @@ const callScript = async (payload, retries = 3) => {
         body: JSON.stringify(payload),
         headers: {
           'Content-Type': 'application/json'
-        },
-        mode: 'no-cors'
+        }
       });
       
-      // no-cors 模式下無法讀取響應，改用 text 模式
       const text = await response.text();
       console.log('📥 收到回應:', text);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
+      }
+      
+      if (!text) {
+        throw new Error('空的回應');
+      }
+      
       return JSON.parse(text);
     } catch (error) {
       console.warn(`⚠️ 第 ${i + 1} 次嘗試失敗:`, error);
