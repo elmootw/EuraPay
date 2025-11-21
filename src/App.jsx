@@ -75,7 +75,7 @@ function App() {
     <div className="min-h-screen bg-milktea-50">
       <header className="bg-milktea-600 text-white shadow-lg">
         <div className="max-w-2xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold">EuraPay</h1>
+          <h1 className="text-3xl font-bold">🍵 EuraPay</h1>
           <p className="text-milktea-100">Elmo & Eura 分帳系統</p>
         </div>
       </header>
