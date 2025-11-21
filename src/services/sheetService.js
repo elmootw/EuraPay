@@ -1,34 +1,27 @@
-const SHEET_ID = process.env.REACT_APP_SHEET_ID;
-const API_KEY = process.env.REACT_APP_GOOGLE_API_KEY;
-const SCRIPT_URL = process.env.REACT_APP_SCRIPT_URL;
+import { database } from '../config/firebase';
+import { ref, get, set, remove } from 'firebase/database';
+
 const STORAGE_KEY = 'eurapay_expenses';
 
 export const loadExpenses = async () => {
   try {
-    console.log('🔄 從 Google Sheet 載入帳務中...');
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet1!A:G?key=${API_KEY}`;
+    console.log('🔄 從 Firebase 載入帳務中...');
+    const expensesRef = ref(database, 'expenses');
+    const snapshot = await get(expensesRef);
     
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    
-    const data = await response.json();
-    const values = data.values || [];
-    
-    const expenses = values.slice(1).map(row => ({
-      id: row[0] ? row[0].toString() : '',
-      timestamp: row[1] ? row[1].toString() : '',
-      description: row[2] ? row[2].toString() : '',
-      amount: Math.round(parseFloat(row[3]) || 0),
-      paidBy: row[4] ? row[4].toString() : '',
-      type: row[5] ? row[5].toString() : 'EXPENSE',
-      splitType: row[6] ? row[6].toString() : 'full'
-    })).filter(e => e.id);
-    
-    console.log('✅ 載入成功，共', expenses.length, '筆');
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
-    return expenses;
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      const expenses = Object.values(data).filter(e => e);
+      console.log('✅ 載入成功，共', expenses.length, '筆');
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
+      return expenses;
+    } else {
+      console.log('📭 Firebase 中無資料');
+      const localData = localStorage.getItem(STORAGE_KEY);
+      return localData ? JSON.parse(localData) : [];
+    }
   } catch (error) {
-    console.warn('⚠️ 無法從 Google Sheet 載入:', error);
+    console.warn('⚠️ 無法從 Firebase 載入:', error);
     const localData = localStorage.getItem(STORAGE_KEY);
     return localData ? JSON.parse(localData) : [];
   }
@@ -39,22 +32,20 @@ export const saveExpenses = async (expenses) => {
     console.log('💾 保存帳務中，共', expenses.length, '筆');
     localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
     
-    // 使用 Apps Script 寫入
-    console.log('📤 上傳到 Google Sheet...');
-    const response = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        action: 'save',
-        expenses: expenses
-      })
+    console.log('📤 上傳到 Firebase...');
+    const expensesRef = ref(database, 'expenses');
+    
+    // 先清空
+    await remove(expensesRef);
+    
+    // 寫入新資料
+    const expensesData = {};
+    expenses.forEach((expense, index) => {
+      expensesData[expense.id || index] = expense;
     });
+    await set(expensesRef, expensesData);
     
-    const text = await response.text();
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${text}`);
-    }
-    
-    console.log('✅ 已保存到 Google Sheet');
+    console.log('✅ 已保存到 Firebase');
   } catch (error) {
     console.warn('❌ 保存失敗:', error);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
