@@ -1,78 +1,35 @@
-// 設定您的 Google Sheets ID 和 API 金鑰
 const SHEET_ID = process.env.REACT_APP_SHEET_ID;
-
-// 使用 Google Sheets API v4（需要 API 金鑰）
 const API_KEY = process.env.REACT_APP_GOOGLE_API_KEY;
-
-let doc;
-let sheet;
-
-const initializeSheet = async () => {
-  if (doc) return;
-
-  try {
-    doc = new GoogleSpreadsheet(SHEET_ID);
-    
-    await doc.useServiceAccountAuth({
-      client_email: GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    });
-
-    await doc.loadInfo();
-    sheet = doc.sheetsByIndex[0];
-  } catch (error) {
-    console.error('Google Sheets 初始化失敗:', error);
-    throw error;
-  }
-};
-
 const SCRIPT_URL = process.env.REACT_APP_SCRIPT_URL;
-
-const callScript = async (payload, retries = 3) => {
-  for (let i = 0; i < retries; i++) {
-    try {
-      console.log('📤 發送請求:', payload);
-      const response = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      const text = await response.text();
-      console.log('📥 收到回應:', text);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
-      }
-      
-      if (!text) {
-        throw new Error('空的回應');
-      }
-      
-      return JSON.parse(text);
-    } catch (error) {
-      console.warn(`⚠️ 第 ${i + 1} 次嘗試失敗:`, error);
-      if (i === retries - 1) throw error;
-      await new Promise(r => setTimeout(r, 1000));
-    }
-  }
-};
+const STORAGE_KEY = 'eurapay_expenses';
 
 export const loadExpenses = async () => {
   try {
     console.log('🔄 從 Google Sheet 載入帳務中...');
-    const result = await callScript({ action: 'get' });
-    if (Array.isArray(result)) {
-      console.log('✅ 載入成功，共', result.length, '筆');
-      localStorage.setItem('eurapay_expenses', JSON.stringify(result));
-      return result;
-    }
-    throw new Error('無效的響應格式');
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet1!A:G?key=${API_KEY}`;
+    
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    
+    const data = await response.json();
+    const values = data.values || [];
+    
+    const expenses = values.slice(1).map(row => ({
+      id: row[0] ? row[0].toString() : '',
+      timestamp: row[1] ? row[1].toString() : '',
+      description: row[2] ? row[2].toString() : '',
+      amount: parseFloat(row[3]) || 0,
+      paidBy: row[4] ? row[4].toString() : '',
+      type: row[5] ? row[5].toString() : 'EXPENSE',
+      splitType: row[6] ? row[6].toString() : 'full'
+    })).filter(e => e.id);
+    
+    console.log('✅ 載入成功，共', expenses.length, '筆');
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
+    return expenses;
   } catch (error) {
-    console.warn('⚠️ 無法從 Google Sheet 載入，使用本地存儲:', error);
-    const localData = localStorage.getItem('eurapay_expenses');
+    console.warn('⚠️ 無法從 Google Sheet 載入:', error);
+    const localData = localStorage.getItem(STORAGE_KEY);
     return localData ? JSON.parse(localData) : [];
   }
 };
@@ -80,27 +37,26 @@ export const loadExpenses = async () => {
 export const saveExpenses = async (expenses) => {
   try {
     console.log('💾 保存帳務中，共', expenses.length, '筆');
-    localStorage.setItem('eurapay_expenses', JSON.stringify(expenses));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
     
-    console.log('🗑️ 清空 Google Sheet...');
-    await callScript({ action: 'clear' });
+    // 使用 Apps Script 寫入
+    console.log('📤 上傳到 Google Sheet...');
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'save',
+        expenses: expenses
+      })
+    });
     
-    for (let expense of expenses) {
-      console.log('➕ 新增:', expense.description);
-      await callScript({
-        action: 'add',
-        id: expense.id,
-        timestamp: expense.timestamp,
-        description: expense.description,
-        amount: expense.amount,
-        paidBy: expense.paidBy,
-        type: expense.type,
-        splitType: expense.splitType || 'full'
-      });
+    const text = await response.text();
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${text}`);
     }
     
-    console.log('✅ 已成功保存到 Google Sheet');
+    console.log('✅ 已保存到 Google Sheet');
   } catch (error) {
-    console.warn('❌ 無法保存到 Google Sheet:', error);
+    console.warn('❌ 保存失敗:', error);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
   }
 };
