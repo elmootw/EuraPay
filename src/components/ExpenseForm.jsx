@@ -4,7 +4,7 @@ function ExpenseForm({ onSubmit, onCancel }) {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [paidBy, setPaidBy] = useState('Elmo');
-  const [splitType, setSplitType] = useState('full'); // 'full' 或 'split'
+  const [splitType, setSplitType] = useState('full');
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -15,12 +15,12 @@ function ExpenseForm({ onSubmit, onCancel }) {
 
     const newExpense = {
       id: Date.now(),
-      amount: parseFloat(amount),
+      amount: Math.round(parseInt(amount, 10)),
       description,
       paidBy,
       timestamp: new Date().toISOString(),
       type: 'EXPENSE',
-      splitType: splitType // 記錄分攤方式
+      splitType: splitType
     };
 
     onSubmit(newExpense);
@@ -43,7 +43,6 @@ function ExpenseForm({ onSubmit, onCancel }) {
             </label>
             <input
               type="number"
-              step="0.01"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="輸入金額"

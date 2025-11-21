@@ -18,7 +18,7 @@ export const loadExpenses = async () => {
       id: row[0] ? row[0].toString() : '',
       timestamp: row[1] ? row[1].toString() : '',
       description: row[2] ? row[2].toString() : '',
-      amount: parseFloat(row[3]) || 0,
+      amount: Math.round(parseFloat(row[3]) || 0),
       paidBy: row[4] ? row[4].toString() : '',
       type: row[5] ? row[5].toString() : 'EXPENSE',
       splitType: row[6] ? row[6].toString() : 'full'

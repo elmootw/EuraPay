@@ -33,7 +33,6 @@ function App() {
   const handleClearExpenses = async () => {
     console.log('🧹 開始結清帳務...');
     
-    // 計算結清金額
     let elmoOwes = 0;
     let euraOwes = 0;
 
@@ -51,14 +50,13 @@ function App() {
     let clearAmount = 0;
 
     if (diff > 0) {
-      clearDescription = `Eura 支付 Elmo $${diff.toFixed(2)}`;
-      clearAmount = diff;
+      clearDescription = `Eura 支付 Elmo $${Math.round(diff)}`;
+      clearAmount = Math.round(diff);
     } else if (diff < 0) {
-      clearDescription = `Elmo 支付 Eura $${Math.abs(diff).toFixed(2)}`;
-      clearAmount = Math.abs(diff);
+      clearDescription = `Elmo 支付 Eura $${Math.round(Math.abs(diff))}`;
+      clearAmount = Math.round(Math.abs(diff));
     }
 
-    // 添加結清紀錄
     const clearRecord = {
       id: Date.now(),
       type: 'CLEAR',
@@ -67,7 +65,6 @@ function App() {
       amount: clearAmount
     };
     
-    // 清空所有帳務，只保留結清紀錄
     const clearedExpenses = [clearRecord];
     setExpenses(clearedExpenses);
     await saveExpenses(clearedExpenses);
@@ -78,7 +75,7 @@ function App() {
     <div className="min-h-screen bg-milktea-50">
       <header className="bg-milktea-600 text-white shadow-lg">
         <div className="max-w-2xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold">🍵 EuraPay</h1>
+          <h1 className="text-3xl font-bold">EuraPay</h1>
           <p className="text-milktea-100">Elmo & Eura 分帳系統</p>
         </div>
       </header>
