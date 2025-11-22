@@ -17,7 +17,7 @@ function BalanceCard({ balanceInfo }) {
       <p className="text-gray-600 text-sm mb-2">結算金額</p>
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex-1">
-          <p className="text-red-600 font-bold text-lg mb-2">
+          <p className="text-gray-800 font-bold text-lg mb-2">
             {debtorEmoji} {balanceInfo.debtor} → {creditorEmoji} {balanceInfo.creditor}
           </p>
           <p className="text-3xl font-bold text-red-500">
