@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/EuraPay/static/css/main.ad795c74.css",
-    "main.js": "/EuraPay/static/js/main.d6171ca8.js",
+    "main.css": "/EuraPay/static/css/main.bbe08eef.css",
+    "main.js": "/EuraPay/static/js/main.86a73c01.js",
     "index.html": "/EuraPay/index.html",
-    "main.ad795c74.css.map": "/EuraPay/static/css/main.ad795c74.css.map",
-    "main.d6171ca8.js.map": "/EuraPay/static/js/main.d6171ca8.js.map"
+    "main.bbe08eef.css.map": "/EuraPay/static/css/main.bbe08eef.css.map",
+    "main.86a73c01.js.map": "/EuraPay/static/js/main.86a73c01.js.map"
   },
   "entrypoints": [
-    "static/css/main.ad795c74.css",
-    "static/js/main.d6171ca8.js"
+    "static/css/main.bbe08eef.css",
+    "static/js/main.86a73c01.js"
   ]
 }
