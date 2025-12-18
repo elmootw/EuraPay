@@ -35,9 +35,6 @@ export default function LoginForm({ onLogin }) {
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
           EuraPay
         </h1>
-        <p className="text-center text-gray-600 mb-8">
-          多人記帳應用
-        </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -69,10 +66,6 @@ export default function LoginForm({ onLogin }) {
             {isLoading ? '驗證中...' : '登入'}
           </button>
         </form>
-
-        <p className="text-center text-gray-500 text-xs mt-6">
-          這是一個多人共用的記帳應用
-        </p>
       </div>
     </div>
   );
