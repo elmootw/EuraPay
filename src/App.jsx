@@ -3,6 +3,7 @@ import Dashboard from './pages/Dashboard';
 import ExpenseForm from './components/ExpenseForm';
 import LoginForm from './components/LoginForm';
 import { loadExpenses, saveExpenses } from './services/sheetService';
+import { initializeAuth } from './config/firebase';
 
 function App() {
   const [expenses, setExpenses] = useState([]);
@@ -35,6 +36,7 @@ function App() {
 
   const handleLogin = () => {
     setIsAuthenticated(true);
+    initializeAuth(); // 初始化 Firebase 匿名認證
     loadInitialData();
   };
 
