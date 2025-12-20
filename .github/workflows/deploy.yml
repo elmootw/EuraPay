@@ -35,6 +35,7 @@ jobs:
           REACT_APP_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}
           REACT_APP_FIREBASE_APP_ID: ${{ secrets.REACT_APP_FIREBASE_APP_ID }}
           REACT_APP_SHARE_PASSWORD: ${{ secrets.REACT_APP_SHARE_PASSWORD }}
+          REACT_APP_SHARED_EMAIL: ${{ secrets.REACT_APP_SHARED_EMAIL }}
         run: npm run build
 
       - name: Deploy to GitHub Pages

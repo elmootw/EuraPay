@@ -3,7 +3,8 @@ import Dashboard from './pages/Dashboard';
 import ExpenseForm from './components/ExpenseForm';
 import LoginForm from './components/LoginForm';
 import { loadExpenses, saveExpenses } from './services/sheetService';
-import { initializeAuth } from './config/firebase';
+import { auth, logoutUser } from './config/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 function App() {
   const [expenses, setExpenses] = useState([]);
@@ -12,15 +13,17 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // 檢查是否已登入
-    const authenticated = localStorage.getItem('eurapay_authenticated') === 'true';
-    setIsAuthenticated(authenticated);
-    
-    if (authenticated) {
-      loadInitialData();
-    } else {
-      setLoading(false);
-    }
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setIsAuthenticated(true);
+        loadInitialData();
+      } else {
+        setIsAuthenticated(false);
+        setLoading(false);
+      }
+    });
+
+    return unsubscribe;
   }, []);
 
   const loadInitialData = async () => {
@@ -36,14 +39,16 @@ function App() {
 
   const handleLogin = () => {
     setIsAuthenticated(true);
-    initializeAuth(); // 初始化 Firebase 匿名認證
     loadInitialData();
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('eurapay_authenticated');
-    setIsAuthenticated(false);
-    setExpenses([]);
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      setExpenses([]);
+    } catch (error) {
+      console.error('登出失敗:', error);
+    }
   };
 
   const handleAddExpense = async (newExpense) => {
