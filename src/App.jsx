@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Dashboard from './pages/Dashboard';
 import ExpenseForm from './components/ExpenseForm';
 import LoginForm from './components/LoginForm';
-import { loadExpenses, saveExpenses } from './services/sheetService';
+import { subscribeExpenses, addExpense, addSettlement } from './services/sheetService';
 import { buildSettlementRecord } from './utils/balance';
 import { auth, logoutUser } from './config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -12,69 +12,70 @@ function App() {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setIsAuthenticated(true);
-        loadInitialData();
-      } else {
-        setIsAuthenticated(false);
+    return onAuthStateChanged(auth, (user) => {
+      setIsAuthenticated(Boolean(user));
+      if (!user) {
+        setExpenses([]);
         setLoading(false);
       }
     });
-
-    return unsubscribe;
   }, []);
 
-  const loadInitialData = async () => {
-    try {
-      const data = await loadExpenses();
-      setExpenses(data);
-    } catch (error) {
-      console.error('載入資料失敗:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 登入後持續監聽，另一台裝置的變動會即時反映
+  useEffect(() => {
+    if (!isAuthenticated) return undefined;
 
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-    loadInitialData();
-  };
+    setLoading(true);
+    return subscribeExpenses(
+      (data) => {
+        setExpenses(data);
+        setError('');
+        setLoading(false);
+      },
+      (syncError, cached) => {
+        setExpenses(cached);
+        setError('目前無法連線，顯示的是本地備份資料，新增的帳目不會被儲存');
+        setLoading(false);
+      }
+    );
+  }, [isAuthenticated]);
 
   const handleLogout = async () => {
     try {
       await logoutUser();
-      setExpenses([]);
-    } catch (error) {
-      console.error('登出失敗:', error);
+    } catch (logoutError) {
+      console.error('登出失敗:', logoutError);
     }
   };
 
   const handleAddExpense = async (newExpense) => {
-    const updatedExpenses = [...expenses, newExpense];
-    setExpenses(updatedExpenses);
-    await saveExpenses(updatedExpenses);
-    setShowForm(false);
+    try {
+      await addExpense(newExpense);
+      setShowForm(false);
+    } catch (addError) {
+      console.error('新增帳目失敗:', addError);
+      setError('新增帳目失敗，請確認網路連線後再試');
+    }
   };
 
   const handleClearExpenses = async () => {
-    console.log('🧹 開始結清帳務...');
-
-    const settlement = buildSettlementRecord(expenses);
-
-    // 只附加一筆結算紀錄，之前的帳目保留在歷史中
-    const updatedExpenses = [...expenses, settlement];
-    setExpenses(updatedExpenses);
-    await saveExpenses(updatedExpenses);
-    console.log('✅ 帳務已結清:', settlement.description);
+    try {
+      const settlement = buildSettlementRecord(expenses);
+      await addSettlement(settlement);
+      console.log('✅ 帳務已結清:', settlement.description);
+    } catch (settleError) {
+      console.error('結清失敗:', settleError);
+      setError('結清失敗，請確認網路連線後再試');
+    }
   };
 
   return (
     <div className="min-h-screen bg-milktea-50">
       {!isAuthenticated ? (
-        <LoginForm onLogin={handleLogin} />
+        <LoginForm />
       ) : (
         <>
           <header className="bg-milktea-600 text-white shadow-lg">
@@ -93,20 +94,26 @@ function App() {
           </header>
 
           <main className="max-w-2xl mx-auto px-4 py-8">
+            {error && (
+              <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
             {loading ? (
               <div className="text-center py-12">
                 <p className="text-gray-600">載入中...</p>
               </div>
             ) : (
               <>
-                <Dashboard 
+                <Dashboard
                   expenses={expenses}
                   onAddClick={() => setShowForm(!showForm)}
                   onClear={handleClearExpenses}
                 />
-                
+
                 {showForm && (
-                  <ExpenseForm 
+                  <ExpenseForm
                     onSubmit={handleAddExpense}
                     onCancel={() => setShowForm(false)}
                   />

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { loginUser } from '../config/firebase';
 
-export default function LoginForm({ onLogin }) {
+export default function LoginForm() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -28,9 +28,9 @@ export default function LoginForm({ onLogin }) {
         return;
       }
 
+      // 登入成功後由 App 的 onAuthStateChanged 接手切換畫面
       await loginUser(username, password);
       localStorage.setItem('eurapay_username', username);
-      onLogin();
     } catch (error) {
       if (error.code === 'auth/too-many-requests') {
         setError('嘗試次數過多，請稍後再試');

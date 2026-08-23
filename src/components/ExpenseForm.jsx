@@ -5,29 +5,44 @@ function ExpenseForm({ onSubmit, onCancel }) {
   const [description, setDescription] = useState('');
   const [paidBy, setPaidBy] = useState('Elmo');
   const [splitType, setSplitType] = useState('full');
+  const [error, setError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!amount || !description) {
-      alert('請填寫所有欄位');
+
+    const parsedAmount = Math.round(Number(amount));
+    if (!description.trim()) {
+      setError('請填寫項目名稱');
+      return;
+    }
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      setError('金額請填寫大於 0 的數字');
       return;
     }
 
+    setError('');
+    setIsSaving(true);
+
+    // 識別碼交給 Firebase 的 push key，避免同一毫秒新增時撞號
     const newExpense = {
-      id: Date.now(),
-      amount: Math.round(parseInt(amount, 10)),
-      description,
+      amount: parsedAmount,
+      description: description.trim(),
       paidBy,
       timestamp: new Date().toISOString(),
       type: 'EXPENSE',
       splitType: splitType
     };
 
-    onSubmit(newExpense);
-    setAmount('');
-    setDescription('');
-    setPaidBy('Elmo');
-    setSplitType('full');
+    try {
+      await onSubmit(newExpense);
+      setAmount('');
+      setDescription('');
+      setPaidBy('Elmo');
+      setSplitType('full');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -123,18 +138,26 @@ function ExpenseForm({ onSubmit, onCancel }) {
             </div>
           </div>
 
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
           {/* 按鈕 */}
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
-              className="flex-1 bg-milktea-500 hover:bg-milktea-600 text-white font-bold py-2 px-4 rounded-lg transition"
+              disabled={isSaving}
+              className="flex-1 bg-milktea-500 hover:bg-milktea-600 disabled:bg-gray-300 text-white font-bold py-2 px-4 rounded-lg transition"
             >
-              ✅ 確認
+              {isSaving ? '儲存中...' : '✅ 確認'}
             </button>
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg transition"
+              disabled={isSaving}
+              className="flex-1 bg-gray-300 hover:bg-gray-400 disabled:opacity-60 text-gray-800 font-bold py-2 px-4 rounded-lg transition"
             >
               ❌ 取消
             </button>

@@ -62,7 +62,6 @@ export const buildSettlementRecord = (expenses) => {
   const payable = Math.round(amount);
 
   return {
-    id: Date.now(),
     type: SETTLEMENT_TYPE,
     timestamp: new Date().toISOString(),
     description: debtor ? `${debtor} 支付 ${creditor} $${payable}` : '帳務已結清',
