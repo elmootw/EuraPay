@@ -1,45 +1,83 @@
 import React from 'react';
 import { formatAmount, MEMBER_EMOJI } from '../utils/balance';
 
-function BalanceCard({ balanceInfo, activeCount = 0, viewer = null }) {
-  if (!balanceInfo.debtor) {
-    return (
-      <section className="rounded-2xl bg-matcha-50 ring-1 ring-matcha-200 px-6 py-8 text-center">
-        <p className="text-xs font-medium tracking-wide text-matcha-600">目前結餘</p>
-        <p className="mt-3 text-2xl font-semibold text-matcha-800">帳務已結清</p>
-        <p className="mt-2 text-xs text-matcha-600">沒有待結清的帳目</p>
-      </section>
-    );
-  }
+const TONES = {
+  // 應收：別人欠他
+  positive: {
+    card: 'bg-matcha-50 ring-matcha-200',
+    amount: 'text-matcha-700',
+    label: 'text-matcha-700',
+    text: '應收',
+  },
+  // 應付：他要付出去
+  negative: {
+    card: 'bg-clay-50 ring-clay-200',
+    amount: 'text-clay-600',
+    label: 'text-clay-700',
+    text: '應付',
+  },
+  zero: {
+    card: 'bg-white ring-milktea-200',
+    amount: 'text-milktea-800',
+    label: 'text-milktea-800',
+    text: '已結清',
+  },
+};
 
-  const { debtor, creditor, amount } = balanceInfo;
-  // 用「你」稱呼登入者，方向一眼就懂；未知登入者則直接顯示雙方名字
-  const payerLabel = viewer === debtor ? '你' : debtor;
-  const receiverLabel = viewer === creditor ? '你' : creditor;
-  const payable = Math.round(amount);
+function MemberCard({ member, amount, isViewer }) {
+  const tone = amount > 0 ? TONES.positive : amount < 0 ? TONES.negative : TONES.zero;
+  // 正負號要明講，只給數字讀不出是應收還是應付
+  const sign = amount > 0 ? '+' : amount < 0 ? '−' : '';
 
   return (
-    <section className="rounded-2xl bg-white ring-1 ring-milktea-200 px-6 py-8 shadow-sm">
-      <p className="text-xs font-medium tracking-wide text-milktea-800">目前結餘</p>
+    <div className={`rounded-2xl px-4 py-5 ring-1 ${tone.card}`}>
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="truncate text-sm font-medium text-milktea-950">
+          {MEMBER_EMOJI[member]} {member}
+        </p>
+        {isViewer && (
+          <span className="shrink-0 rounded bg-milktea-200 px-1.5 py-0.5 text-xs font-medium text-milktea-950">
+            你
+          </span>
+        )}
+      </div>
 
-      {/* 一句話講完誰付給誰，取代原本方向不明的箭頭 */}
-      <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-lg">
-        <span className="font-semibold text-milktea-950">
-          {MEMBER_EMOJI[debtor]} {payerLabel}
-        </span>
-        <span className="text-sm font-normal text-milktea-900">要付給</span>
-        <span className="font-semibold text-milktea-950">
-          {MEMBER_EMOJI[creditor]} {receiverLabel}
-        </span>
+      <p className={`mt-3 text-3xl font-bold tabular-nums tracking-tight ${tone.amount}`}>
+        {sign}${formatAmount(Math.abs(amount))}
       </p>
+      <p className={`mt-1 text-xs font-medium ${tone.label}`}>{tone.text}</p>
+    </div>
+  );
+}
 
-      <p className="mt-2 text-5xl font-bold tabular-nums tracking-tight text-clay-600">
-        ${formatAmount(amount)}
-      </p>
+function BalanceCard({ balanceInfo, memberBalances, activeCount = 0, viewer = null }) {
+  const isSettled = !balanceInfo.debtor;
+  const payable = Math.round(balanceInfo.amount);
 
-      <p className="mt-4 text-xs text-milktea-800">
-        {activeCount} 筆未結清帳目
-        {!Number.isInteger(amount) && ` · 結清時取整為 $${payable}`}
+  return (
+    <section>
+      <p className="mb-3 text-xs font-medium tracking-wide text-milktea-800">目前結餘</p>
+
+      <div className="grid grid-cols-2 gap-3">
+        {memberBalances.map(({ member, amount }) => (
+          <MemberCard
+            key={member}
+            member={member}
+            amount={amount}
+            isViewer={viewer === member}
+          />
+        ))}
+      </div>
+
+      <p className="mt-3 text-xs text-milktea-800">
+        {isSettled ? (
+          '帳務已結清，沒有待結清的帳目'
+        ) : (
+          <>
+            {activeCount} 筆未結清帳目
+            {!Number.isInteger(balanceInfo.amount) && ` · 結清時取整為 $${payable}`}
+          </>
+        )}
       </p>
     </section>
   );

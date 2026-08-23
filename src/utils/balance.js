@@ -86,6 +86,18 @@ export const calculateBalance = (expenses) => {
   return { debtor: null, creditor: null, amount: 0, label: '帳務已結清' };
 };
 
+// 每個人的淨額：正數為應收（別人欠他）、負數為應付。
+// 一律由 calculateBalance 推導，不另寫一套計算
+export const getMemberBalances = (expenses) => {
+  const { debtor, creditor, amount } = calculateBalance(expenses);
+
+  return MEMBERS.map(member => {
+    if (member === creditor) return { member, amount };
+    if (member === debtor) return { member, amount: -amount };
+    return { member, amount: 0 };
+  });
+};
+
 // 實際轉帳金額取整數（0.5 元無法轉帳），只在結清時取一次以免累積誤差
 export const buildSettlementRecord = (expenses) => {
   const { debtor, creditor, amount } = calculateBalance(expenses);

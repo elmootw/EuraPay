@@ -3,7 +3,7 @@ import Dashboard from './pages/Dashboard';
 import ExpenseForm from './components/ExpenseForm';
 import LoginForm from './components/LoginForm';
 import { subscribeExpenses, addExpense, addSettlement } from './services/sheetService';
-import { buildSettlementRecord, normalizeMember } from './utils/balance';
+import { buildSettlementRecord, normalizeMember, MEMBER_EMOJI } from './utils/balance';
 import { auth, logoutUser } from './config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
@@ -93,12 +93,19 @@ function App() {
             <h1 className="text-lg font-semibold tracking-tight text-milktea-950">EuraPay</h1>
             <p className="text-xs text-milktea-800">Elmo &amp; Eura</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="rounded-lg px-3 py-1.5 text-sm font-medium text-milktea-900 ring-1 ring-milktea-300 transition hover:bg-milktea-100"
-          >
-            登出
-          </button>
+          <div className="flex items-center gap-3">
+            {viewer && (
+              <p className="text-sm font-medium text-milktea-950">
+                {MEMBER_EMOJI[viewer]} {viewer}
+              </p>
+            )}
+            <button
+              onClick={handleLogout}
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-milktea-900 ring-1 ring-milktea-300 transition hover:bg-milktea-100"
+            >
+              登出
+            </button>
+          </div>
         </div>
       </header>
 

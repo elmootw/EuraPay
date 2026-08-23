@@ -1,11 +1,12 @@
 import React, { useMemo } from 'react';
 import BalanceCard from '../components/BalanceCard';
 import ExpenseList from '../components/ExpenseList';
-import { calculateBalance, getActiveExpenses } from '../utils/balance';
+import { calculateBalance, getActiveExpenses, getMemberBalances } from '../utils/balance';
 
 function Dashboard({ expenses, viewer, onAddClick, onClear }) {
   const balanceInfo = useMemo(() => calculateBalance(expenses), [expenses]);
   const activeCount = useMemo(() => getActiveExpenses(expenses).length, [expenses]);
+  const memberBalances = useMemo(() => getMemberBalances(expenses), [expenses]);
 
   const handleClearClick = () => {
     const message = balanceInfo.debtor
@@ -19,7 +20,12 @@ function Dashboard({ expenses, viewer, onAddClick, onClear }) {
 
   return (
     <div className="space-y-8">
-      <BalanceCard balanceInfo={balanceInfo} activeCount={activeCount} viewer={viewer} />
+      <BalanceCard
+        balanceInfo={balanceInfo}
+        memberBalances={memberBalances}
+        activeCount={activeCount}
+        viewer={viewer}
+      />
 
       {/* 主要動作只有一個：新增。結清是次要動作，樣式退一階 */}
       <div className="flex flex-col gap-3 sm:flex-row">
