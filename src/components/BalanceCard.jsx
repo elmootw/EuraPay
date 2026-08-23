@@ -1,32 +1,47 @@
 import React from 'react';
-import { formatAmount } from '../utils/balance';
+import { formatAmount, MEMBER_EMOJI } from '../utils/balance';
 
-function BalanceCard({ balanceInfo }) {
+function BalanceCard({ balanceInfo, activeCount = 0, viewer = null }) {
   if (!balanceInfo.debtor) {
     return (
-      <div className="bg-green-100 border-2 border-green-400 rounded-lg p-6 text-center shadow-md">
-        <p className="text-green-700 font-bold text-2xl">✅ 帳務已結清</p>
-      </div>
+      <section className="rounded-2xl bg-matcha-50 ring-1 ring-matcha-200 px-6 py-8 text-center">
+        <p className="text-xs font-medium tracking-wide text-matcha-600">目前結餘</p>
+        <p className="mt-3 text-2xl font-semibold text-matcha-800">帳務已結清</p>
+        <p className="mt-2 text-xs text-matcha-600">沒有待結清的帳目</p>
+      </section>
     );
   }
 
-  const debtorEmoji = balanceInfo.debtor === 'Elmo' ? '🤡' : '😺';
-  const creditorEmoji = balanceInfo.creditor === 'Elmo' ? '🤡' : '😺';
+  const { debtor, creditor, amount } = balanceInfo;
+  // 用「你」稱呼登入者，方向一眼就懂；未知登入者則直接顯示雙方名字
+  const payerLabel = viewer === debtor ? '你' : debtor;
+  const receiverLabel = viewer === creditor ? '你' : creditor;
+  const payable = Math.round(amount);
 
   return (
-    <div className="bg-white rounded-lg p-6 shadow-md border-l-4 border-milktea-500">
-      <p className="text-gray-600 text-sm mb-2">結算金額</p>
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex-1">
-          <p className="text-gray-800 font-bold text-lg mb-2">
-            {debtorEmoji} {balanceInfo.debtor} → {creditorEmoji} {balanceInfo.creditor}
-          </p>
-          <p className="text-3xl font-bold text-red-500">
-            ${formatAmount(balanceInfo.amount)}
-          </p>
-        </div>
-      </div>
-    </div>
+    <section className="rounded-2xl bg-white ring-1 ring-milktea-200 px-6 py-8 shadow-sm">
+      <p className="text-xs font-medium tracking-wide text-milktea-800">目前結餘</p>
+
+      {/* 一句話講完誰付給誰，取代原本方向不明的箭頭 */}
+      <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-lg">
+        <span className="font-semibold text-milktea-950">
+          {MEMBER_EMOJI[debtor]} {payerLabel}
+        </span>
+        <span className="text-sm font-normal text-milktea-900">要付給</span>
+        <span className="font-semibold text-milktea-950">
+          {MEMBER_EMOJI[creditor]} {receiverLabel}
+        </span>
+      </p>
+
+      <p className="mt-2 text-5xl font-bold tabular-nums tracking-tight text-clay-600">
+        ${formatAmount(amount)}
+      </p>
+
+      <p className="mt-4 text-xs text-milktea-800">
+        {activeCount} 筆未結清帳目
+        {!Number.isInteger(amount) && ` · 結清時取整為 $${payable}`}
+      </p>
+    </section>
   );
 }
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { loginUser } from '../config/firebase';
+import { normalizeMember } from '../utils/balance';
 
 export default function LoginForm() {
   const [username, setUsername] = useState('');
@@ -19,8 +20,8 @@ export default function LoginForm() {
         return;
       }
 
-      const lowerUsername = username.toLowerCase();
-      if (lowerUsername !== 'elmo' && lowerUsername !== 'eura') {
+      const member = normalizeMember(username);
+      if (!member) {
         setError('使用者名稱或密碼錯誤');
         setUsername('');
         setPassword('');
@@ -30,14 +31,14 @@ export default function LoginForm() {
 
       // 登入成功後由 App 的 onAuthStateChanged 接手切換畫面
       await loginUser(username, password);
-      localStorage.setItem('eurapay_username', username);
-    } catch (error) {
-      if (error.code === 'auth/too-many-requests') {
+      localStorage.setItem('eurapay_username', member);
+    } catch (loginError) {
+      if (loginError.code === 'auth/too-many-requests') {
         setError('嘗試次數過多，請稍後再試');
       } else {
         setError('使用者名稱或密碼錯誤');
       }
-      
+
       setUsername('');
       setPassword('');
     } finally {
@@ -45,45 +46,53 @@ export default function LoginForm() {
     }
   };
 
+  const inputClass =
+    'w-full rounded-lg border border-milktea-300 bg-white px-4 py-2.5 text-milktea-950 placeholder:text-milktea-600 focus:border-milktea-500 focus:outline-none focus:ring-2 focus:ring-milktea-500/30 disabled:bg-milktea-100';
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
-          EuraPay
-        </h1>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-milktea-100 via-milktea-50 to-milktea-200 p-4">
+      <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-sm ring-1 ring-milktea-200">
+        <div className="mb-8 text-center">
+          <span aria-hidden="true" className="text-3xl">🍵</span>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-milktea-950">EuraPay</h1>
+          <p className="mt-1 text-xs text-milktea-800">Elmo &amp; Eura 分帳系統</p>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-xs font-medium tracking-wide text-milktea-900" htmlFor="login-username">
               使用者名稱
             </label>
             <input
+              id="login-username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="使用者名稱"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
+              placeholder="Elmo 或 Eura"
+              className={inputClass}
               disabled={isLoading}
               autoFocus
+              autoCapitalize="none"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-xs font-medium tracking-wide text-milktea-900" htmlFor="login-password">
               密碼
             </label>
             <input
+              id="login-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="輸入密碼"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
+              className={inputClass}
               disabled={isLoading}
             />
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+            <div className="rounded-lg bg-clay-50 px-4 py-3 text-sm text-clay-700 ring-1 ring-clay-200">
               {error}
             </div>
           )}
@@ -91,9 +100,9 @@ export default function LoginForm() {
           <button
             type="submit"
             disabled={isLoading || !username || !password}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+            className="w-full rounded-lg bg-milktea-600 px-4 py-2.5 font-semibold text-white transition hover:bg-milktea-700 disabled:bg-milktea-300"
           >
-            {isLoading ? '登入中...' : '登入'}
+            {isLoading ? '登入中…' : '登入'}
           </button>
         </form>
       </div>

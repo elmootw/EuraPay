@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  @apply bg-milktea-50 text-gray-800;
+  @apply bg-milktea-50 text-milktea-950 antialiased;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
     'Helvetica Neue', sans-serif;

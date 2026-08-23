@@ -3,7 +3,7 @@ import BalanceCard from '../components/BalanceCard';
 import ExpenseList from '../components/ExpenseList';
 import { calculateBalance, getActiveExpenses } from '../utils/balance';
 
-function Dashboard({ expenses, onAddClick, onClear }) {
+function Dashboard({ expenses, viewer, onAddClick, onClear }) {
   const balanceInfo = useMemo(() => calculateBalance(expenses), [expenses]);
   const activeCount = useMemo(() => getActiveExpenses(expenses).length, [expenses]);
 
@@ -18,28 +18,26 @@ function Dashboard({ expenses, onAddClick, onClear }) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* 淨額卡片 */}
-      <BalanceCard balanceInfo={balanceInfo} />
+    <div className="space-y-8">
+      <BalanceCard balanceInfo={balanceInfo} activeCount={activeCount} viewer={viewer} />
 
-      {/* 操作按鈕 */}
-      <div className="flex gap-4 flex-col sm:flex-row">
+      {/* 主要動作只有一個：新增。結清是次要動作，樣式退一階 */}
+      <div className="flex flex-col gap-3 sm:flex-row">
         <button
           onClick={onAddClick}
-          className="flex-1 bg-milktea-500 hover:bg-milktea-600 text-white font-bold py-3 px-6 rounded-lg transition"
+          className="flex-1 rounded-lg bg-milktea-600 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-milktea-700 focus:outline-none focus:ring-2 focus:ring-milktea-500 focus:ring-offset-2 focus:ring-offset-milktea-50"
         >
-          ➕ 新增帳目
+          新增帳目
         </button>
         <button
           onClick={handleClearClick}
           disabled={activeCount === 0}
-          className="flex-1 bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition"
+          className="rounded-lg px-6 py-3 font-medium text-milktea-900 ring-1 ring-milktea-300 transition hover:bg-milktea-100 disabled:text-milktea-400 disabled:ring-milktea-200 disabled:hover:bg-transparent"
         >
-          🧹 結清帳務
+          結清帳務
         </button>
       </div>
 
-      {/* 帳務紀錄列表 */}
       <ExpenseList expenses={expenses} />
     </div>
   );

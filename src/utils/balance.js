@@ -1,5 +1,13 @@
 export const SETTLEMENT_TYPE = 'CLEAR';
 
+export const MEMBERS = ['Elmo', 'Eura'];
+
+export const MEMBER_EMOJI = { Elmo: '🤡', Eura: '😺' };
+
+// 把任意大小寫的名字對回正式成員名，不是成員則回傳 null
+export const normalizeMember = (name) =>
+  MEMBERS.find(member => member.toLowerCase() === String(name || '').toLowerCase()) || null;
+
 // 取得最近一次結清的時間點，在那之前的帳目不列入當前結餘
 export const getLastSettledAt = (expenses) => {
   let last = null;

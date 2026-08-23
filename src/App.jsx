@@ -3,21 +3,26 @@ import Dashboard from './pages/Dashboard';
 import ExpenseForm from './components/ExpenseForm';
 import LoginForm from './components/LoginForm';
 import { subscribeExpenses, addExpense, addSettlement } from './services/sheetService';
-import { buildSettlementRecord } from './utils/balance';
+import { buildSettlementRecord, normalizeMember } from './utils/balance';
 import { auth, logoutUser } from './config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+
+const readViewer = () => normalizeMember(localStorage.getItem('eurapay_username'));
 
 function App() {
   const [expenses, setExpenses] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [viewer, setViewer] = useState(readViewer);
   const [error, setError] = useState('');
 
   useEffect(() => {
     return onAuthStateChanged(auth, (user) => {
       setIsAuthenticated(Boolean(user));
-      if (!user) {
+      if (user) {
+        setViewer(readViewer());
+      } else {
         setExpenses([]);
         setLoading(false);
       }
@@ -72,57 +77,55 @@ function App() {
     }
   };
 
+  if (!isAuthenticated) {
+    return <LoginForm />;
+  }
+
   return (
     <div className="min-h-screen bg-milktea-50">
-      {!isAuthenticated ? (
-        <LoginForm />
-      ) : (
-        <>
-          <header className="bg-milktea-600 text-white shadow-lg">
-            <div className="max-w-2xl mx-auto px-4 py-6 flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold">🍵 EuraPay</h1>
-                <p className="text-milktea-100">Elmo & Eura 分帳系統</p>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="bg-milktea-700 hover:bg-milktea-800 text-white px-4 py-2 rounded-lg transition"
-              >
-                登出
-              </button>
-            </div>
-          </header>
+      <header className="sticky top-0 z-40 border-b border-milktea-200 bg-milktea-50/90 backdrop-blur">
+        <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-4">
+          <div className="flex items-baseline gap-2">
+            <span aria-hidden="true" className="text-xl">🍵</span>
+            <h1 className="text-lg font-semibold tracking-tight text-milktea-950">EuraPay</h1>
+            <p className="text-xs text-milktea-800">Elmo &amp; Eura</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="rounded-lg px-3 py-1.5 text-sm font-medium text-milktea-900 ring-1 ring-milktea-300 transition hover:bg-milktea-100"
+          >
+            登出
+          </button>
+        </div>
+      </header>
 
-          <main className="max-w-2xl mx-auto px-4 py-8">
-            {error && (
-              <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                {error}
-              </div>
+      <main className="mx-auto max-w-2xl px-4 py-8">
+        {error && (
+          <div className="mb-6 rounded-lg bg-clay-50 px-4 py-3 text-sm text-clay-700 ring-1 ring-clay-200">
+            {error}
+          </div>
+        )}
+
+        {loading ? (
+          <p className="py-16 text-center text-sm text-milktea-800">載入中…</p>
+        ) : (
+          <>
+            <Dashboard
+              expenses={expenses}
+              viewer={viewer}
+              onAddClick={() => setShowForm(!showForm)}
+              onClear={handleClearExpenses}
+            />
+
+            {showForm && (
+              <ExpenseForm
+                onSubmit={handleAddExpense}
+                onCancel={() => setShowForm(false)}
+              />
             )}
-
-            {loading ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">載入中...</p>
-              </div>
-            ) : (
-              <>
-                <Dashboard
-                  expenses={expenses}
-                  onAddClick={() => setShowForm(!showForm)}
-                  onClear={handleClearExpenses}
-                />
-
-                {showForm && (
-                  <ExpenseForm
-                    onSubmit={handleAddExpense}
-                    onCancel={() => setShowForm(false)}
-                  />
-                )}
-              </>
-            )}
-          </main>
-        </>
-      )}
+          </>
+        )}
+      </main>
     </div>
   );
 }
