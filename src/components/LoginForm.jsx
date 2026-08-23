@@ -29,9 +29,12 @@ export default function LoginForm() {
         return;
       }
 
+      // 必須先寫入再登入：onAuthStateChanged 會在登入完成當下觸發，
+      // 若晚於此行寫入，App 會讀到上一次登入留下的名字
+      localStorage.setItem('eurapay_username', member);
+
       // 登入成功後由 App 的 onAuthStateChanged 接手切換畫面
       await loginUser(username, password);
-      localStorage.setItem('eurapay_username', member);
     } catch (loginError) {
       if (loginError.code === 'auth/too-many-requests') {
         setError('嘗試次數過多，請稍後再試');
