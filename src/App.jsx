@@ -7,7 +7,10 @@ import { buildSettlementRecord, normalizeMember, MEMBER_EMOJI } from './utils/ba
 import { auth, logoutUser } from './config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
-const readViewer = () => normalizeMember(localStorage.getItem('eurapay_username'));
+// 舊 key（eurapay_username）刻意不再讀取：在寫入順序修正前存下的名字
+// 可能是上一個登入者，繼續沿用會把 createdBy 記到錯的人身上。
+// 讀不到就當作未知（viewer 為 null），下次登入時自然補上
+const readViewer = () => normalizeMember(localStorage.getItem('eurapay_member'));
 
 function App() {
   const [expenses, setExpenses] = useState([]);

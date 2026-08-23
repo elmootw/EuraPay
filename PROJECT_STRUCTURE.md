@@ -71,12 +71,17 @@ EuraPay/
 
 ### 「你是誰」的判定（`viewer`）
 1. `LoginForm.jsx` 登入成功前，先把正規化後的名字寫入
-   `localStorage.eurapay_username`
+   `localStorage.eurapay_member`
 2. `App.jsx` 的 `readViewer()` 讀出來，經 `normalizeMember()` 轉回
    `'Elmo'` / `'Eura'`，找不到則為 `null`
 3. 用於標題列右上角顯示目前登入者，以及新增帳目／結清時的 `createdBy`
 
 畫面上不會用「你」稱呼登入者 —— 一律直接顯示名字。
+
+舊 key `eurapay_username` 已停止讀取。它可能存著寫入順序修正前留下的
+錯誤名字，沿用會把 `createdBy` 記到錯的人身上；改用新 key 後，既有工作
+階段會被視為「未知」（`viewer` 為 `null`）而不是「錯誤」，下次登入自動
+補上，使用者不需要手動登出重登。
 
 ⚠️ **寫入必須早於 `loginUser()`**。Firebase 的 `onAuthStateChanged` 會在
 登入完成當下就觸發，若寫入晚於登入，`App` 會讀到上一次登入留下的名字，
@@ -131,7 +136,7 @@ eurapay-{project-id}-default-rtdb/
 key 的排序規則。`createdBy` 是後來才加的，舊紀錄沒有這個欄位，UI 會
 略過不顯示。
 
-**關於 `createdBy`**：值來自登入時存進 `localStorage.eurapay_username`
+**關於 `createdBy`**：值來自登入時存進 `localStorage.eurapay_member`
 的名字。兩人共用同一個 Firebase 帳號，所以這是**自己申報**的身分、
 沒有經過驗證，僅供辨識參考，不參與任何金額計算。若 localStorage 沒有
 值（例如瀏覽器清過資料），寫入時就不會帶上這個欄位。

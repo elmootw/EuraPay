@@ -31,7 +31,7 @@ export default function LoginForm() {
 
       // 必須先寫入再登入：onAuthStateChanged 會在登入完成當下觸發，
       // 若晚於此行寫入，App 會讀到上一次登入留下的名字
-      localStorage.setItem('eurapay_username', member);
+      localStorage.setItem('eurapay_member', member);
 
       // 登入成功後由 App 的 onAuthStateChanged 接手切換畫面
       await loginUser(username, password);
