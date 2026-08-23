@@ -1,6 +1,7 @@
 import React from 'react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
+import { getSharedAmount, formatAmount } from '../utils/balance';
 
 function ExpenseList({ expenses }) {
   const displayExpenses = [...expenses].reverse();
@@ -41,10 +42,6 @@ function ExpenseList({ expenses }) {
             );
           }
 
-          const displayAmount = expense.splitType === 'split' 
-            ? Math.round(expense.amount / 2)
-            : expense.amount;
-
           return (
             <div
               key={expense.id}
@@ -65,11 +62,16 @@ function ExpenseList({ expenses }) {
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-bold text-milktea-600">
-                    ${displayAmount}
+                    ${formatAmount(getSharedAmount(expense))}
                   </p>
                   <p className="text-sm font-semibold text-gray-700">
                     {expense.paidBy === 'Elmo' ? '🤡 Elmo 付款' : '😺 Eura 付款'}
                   </p>
+                  {expense.splitType === 'split' && (
+                    <p className="text-xs text-gray-400">
+                      平分 ${expense.amount}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

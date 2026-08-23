@@ -3,6 +3,7 @@ import Dashboard from './pages/Dashboard';
 import ExpenseForm from './components/ExpenseForm';
 import LoginForm from './components/LoginForm';
 import { loadExpenses, saveExpenses } from './services/sheetService';
+import { buildSettlementRecord } from './utils/balance';
 import { auth, logoutUser } from './config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
@@ -60,43 +61,14 @@ function App() {
 
   const handleClearExpenses = async () => {
     console.log('🧹 開始結清帳務...');
-    
-    let elmoOwes = 0;
-    let euraOwes = 0;
 
-    expenses.forEach(expense => {
-      if (expense.type === 'CLEAR') return;
-      if (expense.paidBy === 'Elmo') {
-        euraOwes += expense.amount;
-      } else if (expense.paidBy === 'Eura') {
-        elmoOwes += expense.amount;
-      }
-    });
+    const settlement = buildSettlementRecord(expenses);
 
-    const diff = euraOwes - elmoOwes;
-    let clearDescription = '帳務已結清';
-    let clearAmount = 0;
-
-    if (diff > 0) {
-      clearDescription = `Eura 支付 Elmo $${Math.round(diff)}`;
-      clearAmount = Math.round(diff);
-    } else if (diff < 0) {
-      clearDescription = `Elmo 支付 Eura $${Math.round(Math.abs(diff))}`;
-      clearAmount = Math.round(Math.abs(diff));
-    }
-
-    const clearRecord = {
-      id: Date.now(),
-      type: 'CLEAR',
-      timestamp: new Date().toISOString(),
-      description: clearDescription,
-      amount: clearAmount
-    };
-    
-    const clearedExpenses = [clearRecord];
+    // 清空所有帳務，只保留結清紀錄
+    const clearedExpenses = [settlement];
     setExpenses(clearedExpenses);
     await saveExpenses(clearedExpenses);
-    console.log('✅ 帳務已結清:', clearDescription);
+    console.log('✅ 帳務已結清:', settlement.description);
   };
 
   return (

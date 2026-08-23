@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatAmount } from '../utils/balance';
 
 function BalanceCard({ balanceInfo }) {
   if (!balanceInfo.debtor) {
@@ -21,7 +22,7 @@ function BalanceCard({ balanceInfo }) {
             {debtorEmoji} {balanceInfo.debtor} → {creditorEmoji} {balanceInfo.creditor}
           </p>
           <p className="text-3xl font-bold text-red-500">
-            ${balanceInfo.amount}
+            ${formatAmount(balanceInfo.amount)}
           </p>
         </div>
       </div>

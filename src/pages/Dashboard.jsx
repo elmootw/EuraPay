@@ -1,53 +1,10 @@
 import React, { useMemo } from 'react';
 import BalanceCard from '../components/BalanceCard';
 import ExpenseList from '../components/ExpenseList';
+import { calculateBalance } from '../utils/balance';
 
 function Dashboard({ expenses, onAddClick, onClear }) {
-  const balance = useMemo(() => {
-    let elmoOwes = 0;
-    let euraOwes = 0;
-
-    expenses.forEach(expense => {
-      if (expense.type === 'CLEAR') return;
-      
-      let amount = expense.amount;
-      
-      // 如果是平分，則每人各佔一半
-      if (expense.splitType === 'split') {
-        amount = expense.amount / 2;
-      }
-      
-      if (expense.paidBy === 'Elmo') {
-        euraOwes += amount;
-      } else if (expense.paidBy === 'Eura') {
-        elmoOwes += amount;
-      }
-    });
-
-    return { elmoOwes, euraOwes };
-  }, [expenses]);
-
-  const getBalanceInfo = () => {
-    const diff = balance.euraOwes - balance.elmoOwes;
-    if (diff > 0) {
-      return { 
-        debtor: 'Eura', 
-        amount: diff, 
-        creditor: 'Elmo',
-        label: 'Eura 欠 Elmo' 
-      };
-    } else if (diff < 0) {
-      return { 
-        debtor: 'Elmo', 
-        amount: Math.abs(diff), 
-        creditor: 'Eura',
-        label: 'Elmo 欠 Eura' 
-      };
-    }
-    return { debtor: null, amount: 0, label: '帳務已結清' };
-  };
-
-  const balanceInfo = getBalanceInfo();
+  const balanceInfo = useMemo(() => calculateBalance(expenses), [expenses]);
 
   return (
     <div className="space-y-6">
