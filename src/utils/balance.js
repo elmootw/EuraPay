@@ -32,6 +32,28 @@ export const getActiveExpenses = (expenses) => {
   );
 };
 
+// 依結清紀錄把帳目切成一段一段，最後一段沒有結清紀錄，代表當期未結清
+export const groupBySettlement = (expenses) => {
+  const ordered = [...expenses].sort((a, b) =>
+    String(a.timestamp).localeCompare(String(b.timestamp))
+  );
+
+  const groups = [];
+  let current = [];
+
+  ordered.forEach(expense => {
+    if (expense.type === SETTLEMENT_TYPE) {
+      groups.push({ settlement: expense, expenses: current });
+      current = [];
+    } else {
+      current.push(expense);
+    }
+  });
+
+  groups.push({ settlement: null, expenses: current });
+  return groups;
+};
+
 // 平分的帳目只有一半算在對方頭上
 export const getSharedAmount = (expense) =>
   expense.splitType === 'split' ? expense.amount / 2 : expense.amount;
