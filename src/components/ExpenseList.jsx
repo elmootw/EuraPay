@@ -8,10 +8,22 @@ import {
   MEMBER_EMOJI,
 } from '../utils/balance';
 
-const timeLabel = (timestamp) => {
+// 建檔資訊：誰填的、什麼時候填的。與帳務內容分屬不同層次，因此獨立成一行
+function RecordMeta({ createdBy, timestamp, tone = 'milktea' }) {
   const date = new Date(timestamp);
-  return `${formatDistanceToNow(date, { addSuffix: true, locale: zhTW })} · ${format(date, 'yyyy/MM/dd HH:mm', { locale: zhTW })}`;
-};
+  const styles = tone === 'matcha'
+    ? 'border-matcha-200 text-matcha-700'
+    : 'border-milktea-100 text-milktea-800';
+
+  return (
+    <p className={`mt-2 border-t pt-2 text-xs ${styles}`}>
+      {createdBy && `${createdBy} 記錄 · `}
+      {formatDistanceToNow(date, { addSuffix: true, locale: zhTW })}
+      {' · '}
+      {format(date, 'yyyy/MM/dd HH:mm', { locale: zhTW })}
+    </p>
+  );
+}
 
 function ExpenseRow({ expense, settled }) {
   return (
@@ -22,21 +34,21 @@ function ExpenseRow({ expense, settled }) {
           : 'border-milktea-400 ring-1 ring-milktea-200'
       }`}
     >
+      {/* 帳務內容：名目、金額、誰付錢、分攤方式 */}
       <div className="flex items-baseline justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate font-medium text-milktea-950">{expense.description}</p>
           <p className="mt-1 text-xs text-milktea-800">
             {MEMBER_EMOJI[expense.paidBy]} {expense.paidBy} 付款
-            {expense.splitType === 'split' && ` · 平分 $${expense.amount}`}
-            {expense.createdBy && expense.createdBy !== expense.paidBy &&
-              ` · 由 ${expense.createdBy} 記錄`}
+            {expense.splitType === 'split' ? ` · 平分 $${expense.amount}` : ' · 全額'}
           </p>
-          <p className="mt-0.5 text-xs text-milktea-800">{timeLabel(expense.timestamp)}</p>
         </div>
         <p className="shrink-0 text-lg font-semibold tabular-nums text-milktea-800">
           ${formatAmount(getSharedAmount(expense))}
         </p>
       </div>
+
+      <RecordMeta createdBy={expense.createdBy} timestamp={expense.timestamp} />
     </article>
   );
 }
@@ -48,38 +60,40 @@ function SettledGroup({ settlement, expenses }) {
   const panelId = `settlement-${settlement.id}`;
 
   const header = (
-    <div className="flex items-baseline justify-between gap-3">
-      <div className="min-w-0">
-        <p className="flex items-center gap-2 text-sm font-semibold text-matcha-800">
-          <span className="shrink-0 rounded bg-matcha-200 px-1.5 py-0.5 text-xs font-medium text-matcha-800">
-            結清
-          </span>
-          <span className="truncate">{settlement.description}</span>
-        </p>
-        <p className="mt-1 text-xs text-matcha-700">
-          {timeLabel(settlement.timestamp)}
-          {settlement.createdBy && ` · 由 ${settlement.createdBy} 結清`}
-          {hasDetails && ` · ${expenses.length} 筆明細`}
-        </p>
-      </div>
-      <div className="flex shrink-0 items-center gap-2">
-        {settlement.amount > 0 && (
-          <p className="text-lg font-semibold tabular-nums text-matcha-700">
-            ${settlement.amount}
+    <>
+      <div className="flex items-baseline justify-between gap-3">
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 text-sm font-semibold text-matcha-800">
+            <span className="shrink-0 rounded bg-matcha-200 px-1.5 py-0.5 text-xs font-medium text-matcha-800">
+              結清
+            </span>
+            <span className="truncate">{settlement.description}</span>
           </p>
-        )}
-        {hasDetails && (
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 20 20"
-            className={`h-4 w-4 text-matcha-700 transition-transform ${isOpen ? 'rotate-90' : ''}`}
-            fill="currentColor"
-          >
-            <path d="M7 5l6 5-6 5V5z" />
-          </svg>
-        )}
+          {hasDetails && (
+            <p className="mt-1 text-xs text-matcha-700">{expenses.length} 筆明細</p>
+          )}
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {settlement.amount > 0 && (
+            <p className="text-lg font-semibold tabular-nums text-matcha-700">
+              ${settlement.amount}
+            </p>
+          )}
+          {hasDetails && (
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 20 20"
+              className={`h-4 w-4 text-matcha-700 transition-transform ${isOpen ? 'rotate-90' : ''}`}
+              fill="currentColor"
+            >
+              <path d="M7 5l6 5-6 5V5z" />
+            </svg>
+          )}
+        </div>
       </div>
-    </div>
+
+      <RecordMeta createdBy={settlement.createdBy} timestamp={settlement.timestamp} tone="matcha" />
+    </>
   );
 
   return (
