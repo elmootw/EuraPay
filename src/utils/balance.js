@@ -1,5 +1,29 @@
 export const SETTLEMENT_TYPE = 'CLEAR';
 
+// 取得最近一次結清的時間點，在那之前的帳目不列入當前結餘
+export const getLastSettledAt = (expenses) => {
+  let last = null;
+  expenses.forEach(expense => {
+    if (expense.type !== SETTLEMENT_TYPE || !expense.timestamp) return;
+    if (!last || expense.timestamp > last) last = expense.timestamp;
+  });
+  return last;
+};
+
+// 判斷一筆帳目是否已被結清（結清紀錄本身不算）
+export const isSettled = (expense, lastSettledAt) =>
+  expense.type !== SETTLEMENT_TYPE &&
+  Boolean(lastSettledAt) &&
+  expense.timestamp <= lastSettledAt;
+
+// 最近一次結清之後、還在計算中的帳目
+export const getActiveExpenses = (expenses) => {
+  const lastSettledAt = getLastSettledAt(expenses);
+  return expenses.filter(expense =>
+    expense.type !== SETTLEMENT_TYPE && !isSettled(expense, lastSettledAt)
+  );
+};
+
 // 平分的帳目只有一半算在對方頭上
 export const getSharedAmount = (expense) =>
   expense.splitType === 'split' ? expense.amount / 2 : expense.amount;
@@ -12,9 +36,7 @@ export const calculateBalance = (expenses) => {
   let elmoOwes = 0;
   let euraOwes = 0;
 
-  expenses.forEach(expense => {
-    if (expense.type === SETTLEMENT_TYPE) return;
-
+  getActiveExpenses(expenses).forEach(expense => {
     const amount = getSharedAmount(expense);
     if (expense.paidBy === 'Elmo') {
       euraOwes += amount;

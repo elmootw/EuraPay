@@ -64,10 +64,10 @@ function App() {
 
     const settlement = buildSettlementRecord(expenses);
 
-    // 清空所有帳務，只保留結清紀錄
-    const clearedExpenses = [settlement];
-    setExpenses(clearedExpenses);
-    await saveExpenses(clearedExpenses);
+    // 只附加一筆結算紀錄，之前的帳目保留在歷史中
+    const updatedExpenses = [...expenses, settlement];
+    setExpenses(updatedExpenses);
+    await saveExpenses(updatedExpenses);
     console.log('✅ 帳務已結清:', settlement.description);
   };
 

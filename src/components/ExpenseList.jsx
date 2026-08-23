@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
-import { getSharedAmount, formatAmount } from '../utils/balance';
+import { getLastSettledAt, getSharedAmount, formatAmount, isSettled } from '../utils/balance';
 
 function ExpenseList({ expenses }) {
-  const displayExpenses = [...expenses].reverse();
+  const lastSettledAt = useMemo(() => getLastSettledAt(expenses), [expenses]);
+  const displayExpenses = useMemo(() => [...expenses].reverse(), [expenses]);
 
   return (
     <div className="space-y-3">
       <h3 className="text-xl font-bold text-milktea-700 mb-4">📋 帳務紀錄</h3>
-      
+
       {displayExpenses.length === 0 ? (
         <div className="bg-milktea-100 rounded-lg p-6 text-center text-gray-600">
           <p>暫無帳務紀錄</p>
@@ -42,14 +43,28 @@ function ExpenseList({ expenses }) {
             );
           }
 
+          // 已結清的帳目保留在歷史中，但淡化顯示以區隔當前帳務
+          const settled = isSettled(expense, lastSettledAt);
+
           return (
             <div
               key={expense.id}
-              className="bg-white border-l-4 border-milktea-400 rounded-lg p-4 shadow-sm hover:shadow-md transition"
+              className={`bg-white border-l-4 rounded-lg p-4 shadow-sm transition ${
+                settled
+                  ? 'border-gray-300 opacity-60'
+                  : 'border-milktea-400 hover:shadow-md'
+              }`}
             >
               <div className="flex justify-between items-start mb-2">
                 <div>
-                  <p className="font-bold text-gray-800">{expense.description}</p>
+                  <p className="font-bold text-gray-800">
+                    {expense.description}
+                    {settled && (
+                      <span className="ml-2 align-middle text-xs font-normal bg-gray-200 text-gray-600 px-2 py-0.5 rounded">
+                        已結清
+                      </span>
+                    )}
+                  </p>
                   <p className="text-sm text-gray-500">
                     {formatDistanceToNow(new Date(expense.timestamp), {
                       addSuffix: true,
@@ -61,7 +76,7 @@ function ExpenseList({ expenses }) {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-milktea-600">
+                  <p className={`text-2xl font-bold ${settled ? 'text-gray-500' : 'text-milktea-600'}`}>
                     ${formatAmount(getSharedAmount(expense))}
                   </p>
                   <p className="text-sm font-semibold text-gray-700">
