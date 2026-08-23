@@ -122,7 +122,6 @@ function App() {
           <>
             <Dashboard
               expenses={expenses}
-              viewer={viewer}
               onAddClick={() => setShowForm(!showForm)}
               onClear={handleClearExpenses}
             />

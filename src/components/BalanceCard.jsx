@@ -24,23 +24,16 @@ const TONES = {
   },
 };
 
-function MemberCard({ member, amount, isViewer }) {
+function MemberCard({ member, amount }) {
   const tone = amount > 0 ? TONES.positive : amount < 0 ? TONES.negative : TONES.zero;
   // 正負號要明講，只給數字讀不出是應收還是應付
   const sign = amount > 0 ? '+' : amount < 0 ? '−' : '';
 
   return (
     <div className={`rounded-2xl px-4 py-5 ring-1 ${tone.card}`}>
-      <div className="flex items-baseline justify-between gap-2">
-        <p className="truncate text-sm font-medium text-milktea-950">
-          {MEMBER_EMOJI[member]} {member}
-        </p>
-        {isViewer && (
-          <span className="shrink-0 rounded bg-milktea-200 px-1.5 py-0.5 text-xs font-medium text-milktea-950">
-            你
-          </span>
-        )}
-      </div>
+      <p className="truncate text-sm font-medium text-milktea-950">
+        {MEMBER_EMOJI[member]} {member}
+      </p>
 
       <p className={`mt-3 text-3xl font-bold tabular-nums tracking-tight ${tone.amount}`}>
         {sign}${formatAmount(Math.abs(amount))}
@@ -50,7 +43,7 @@ function MemberCard({ member, amount, isViewer }) {
   );
 }
 
-function BalanceCard({ balanceInfo, memberBalances, activeCount = 0, viewer = null }) {
+function BalanceCard({ balanceInfo, memberBalances, activeCount = 0 }) {
   const isSettled = !balanceInfo.debtor;
   const payable = Math.round(balanceInfo.amount);
 
@@ -60,12 +53,7 @@ function BalanceCard({ balanceInfo, memberBalances, activeCount = 0, viewer = nu
 
       <div className="grid grid-cols-2 gap-3">
         {memberBalances.map(({ member, amount }) => (
-          <MemberCard
-            key={member}
-            member={member}
-            amount={amount}
-            isViewer={viewer === member}
-          />
+          <MemberCard key={member} member={member} amount={amount} />
         ))}
       </div>
 

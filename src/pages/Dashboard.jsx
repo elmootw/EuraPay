@@ -3,7 +3,7 @@ import BalanceCard from '../components/BalanceCard';
 import ExpenseList from '../components/ExpenseList';
 import { calculateBalance, getActiveExpenses, getMemberBalances } from '../utils/balance';
 
-function Dashboard({ expenses, viewer, onAddClick, onClear }) {
+function Dashboard({ expenses, onAddClick, onClear }) {
   const balanceInfo = useMemo(() => calculateBalance(expenses), [expenses]);
   const activeCount = useMemo(() => getActiveExpenses(expenses).length, [expenses]);
   const memberBalances = useMemo(() => getMemberBalances(expenses), [expenses]);
@@ -24,7 +24,6 @@ function Dashboard({ expenses, viewer, onAddClick, onClear }) {
         balanceInfo={balanceInfo}
         memberBalances={memberBalances}
         activeCount={activeCount}
-        viewer={viewer}
       />
 
       {/* 主要動作只有一個：新增。結清是次要動作，樣式退一階 */}

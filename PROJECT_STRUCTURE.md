@@ -66,15 +66,17 @@ EuraPay/
 5. 畫面切換由 `App.jsx` 的 `onAuthStateChanged` 接手，不靠 callback
 
 **重要**：兩人共用**同一個** Firebase 帳號（`REACT_APP_SHARED_EMAIL`），
-密碼也只有一組。使用者名稱純粹是本地身分標記，用來決定畫面上「你」是誰
-以及帳目的 `createdBy`，任何人都能填任一個名字 —— 它不是權限邊界。
+密碼也只有一組。使用者名稱純粹是本地身分標記，用來顯示目前登入者與帳目的
+`createdBy`，任何人都能填任一個名字 —— 它不是權限邊界。
 
 ### 「你是誰」的判定（`viewer`）
 1. `LoginForm.jsx` 登入成功前，先把正規化後的名字寫入
    `localStorage.eurapay_username`
 2. `App.jsx` 的 `readViewer()` 讀出來，經 `normalizeMember()` 轉回
    `'Elmo'` / `'Eura'`，找不到則為 `null`
-3. 往下傳給 `Dashboard` → `BalanceCard`，決定哪張卡標上「你」
+3. 用於標題列右上角顯示目前登入者，以及新增帳目／結清時的 `createdBy`
+
+畫面上不會用「你」稱呼登入者 —— 一律直接顯示名字。
 
 ⚠️ **寫入必須早於 `loginUser()`**。Firebase 的 `onAuthStateChanged` 會在
 登入完成當下就觸發，若寫入晚於登入，`App` 會讀到上一次登入留下的名字，
@@ -275,8 +277,9 @@ REACT_APP_SHARED_EMAIL=shared_firebase_email
 
 ### src/components/BalanceCard.jsx
 - 左右兩張卡，每人一張，顯示簽名後的淨額（`+` 應收 / `−` 應付）
-- 登入者那張標上「你」；已結清時兩張皆為 `$0` 並標示「已結清」
-  （零沒有正負號可用，這個狀態必須靠文字表達）
+- 兩張卡一律顯示成員名字，不標記「你」
+- 已結清時兩張皆為 `$0` 並標示「已結清」（零沒有正負號可用，這個狀態
+  必須靠文字表達）
 - 並排在 400px 寬度下仍可讀，因此不做窄螢幕堆疊 —— 並排比較本身就是
   這個版面的目的
 
