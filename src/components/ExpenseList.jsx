@@ -28,6 +28,8 @@ function ExpenseRow({ expense, settled }) {
           <p className="mt-1 text-xs text-milktea-800">
             {MEMBER_EMOJI[expense.paidBy]} {expense.paidBy} 付款
             {expense.splitType === 'split' && ` · 平分 $${expense.amount}`}
+            {expense.createdBy && expense.createdBy !== expense.paidBy &&
+              ` · 由 ${expense.createdBy} 記錄`}
           </p>
           <p className="mt-0.5 text-xs text-milktea-800">{timeLabel(expense.timestamp)}</p>
         </div>
@@ -56,6 +58,7 @@ function SettledGroup({ settlement, expenses }) {
         </p>
         <p className="mt-1 text-xs text-matcha-700">
           {timeLabel(settlement.timestamp)}
+          {settlement.createdBy && ` · 由 ${settlement.createdBy} 結清`}
           {hasDetails && ` · ${expenses.length} 筆明細`}
         </p>
       </div>

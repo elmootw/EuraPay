@@ -56,9 +56,12 @@ function App() {
     }
   };
 
+  // 記錄者只在已知登入者時附上，Firebase 不接受值為 undefined 的欄位
+  const withCreator = (record) => (viewer ? { ...record, createdBy: viewer } : record);
+
   const handleAddExpense = async (newExpense) => {
     try {
-      await addExpense(newExpense);
+      await addExpense(withCreator(newExpense));
       setShowForm(false);
     } catch (addError) {
       console.error('新增帳目失敗:', addError);
@@ -68,7 +71,7 @@ function App() {
 
   const handleClearExpenses = async () => {
     try {
-      const settlement = buildSettlementRecord(expenses);
+      const settlement = withCreator(buildSettlementRecord(expenses));
       await addSettlement(settlement);
       console.log('✅ 帳務已結清:', settlement.description);
     } catch (settleError) {

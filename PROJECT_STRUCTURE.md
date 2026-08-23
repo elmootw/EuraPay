@@ -92,7 +92,8 @@ eurapay-{project-id}-default-rtdb/
 └── expenses/
     ├── {pushKey1}: {                  # 一般帳目
     │   "type": "EXPENSE",
-    │   "paidBy": "Elmo" | "Eura",
+    │   "paidBy": "Elmo" | "Eura",     # 誰付的錢
+    │   "createdBy": "Elmo" | "Eura",  # 誰記的帳（選填，見下方說明）
     │   "description": "午餐",
     │   "amount": 500,                 # 帳目全額（整數）
     │   "splitType": "full" | "split", # split 表示兩人平分
@@ -100,6 +101,7 @@ eurapay-{project-id}-default-rtdb/
     │ }
     ├── {pushKey2}: {                  # 結算紀錄
     │   "type": "CLEAR",
+    │   "createdBy": "Elmo" | "Eura",  # 誰按的結清（選填）
     │   "description": "Eura 支付 Elmo $200",
     │   "amount": 200,                 # 實際轉帳金額（已取整）
     │   "timestamp": "ISO_8601_timestamp"
@@ -109,7 +111,13 @@ eurapay-{project-id}-default-rtdb/
 
 **相容性**：早期資料的 key 是 `Date.now()` 且帶有 `id` 欄位，讀取時
 `id` 會沿用、沒有的則以 push key 補上；排序一律依 `timestamp`，不依賴
-key 的排序規則。
+key 的排序規則。`createdBy` 是後來才加的，舊紀錄沒有這個欄位，UI 會
+略過不顯示。
+
+**關於 `createdBy`**：值來自登入時存進 `localStorage.eurapay_username`
+的名字。兩人共用同一個 Firebase 帳號，所以這是**自己申報**的身分、
+沒有經過驗證，僅供辨識參考，不參與任何金額計算。若 localStorage 沒有
+值（例如瀏覽器清過資料），寫入時就不會帶上這個欄位。
 
 ## 🧮 結餘計算規則
 
