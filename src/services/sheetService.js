@@ -1,5 +1,5 @@
 import { database } from '../config/firebase';
-import { ref, push, onValue, remove } from 'firebase/database';
+import { ref, push, onValue, update } from 'firebase/database';
 
 const STORAGE_KEY = 'eurapay_expenses';
 const EXPENSES_PATH = 'expenses';
@@ -59,9 +59,16 @@ export const addExpense = (expense) => appendRecord(expense);
 // 結清只是再記一筆結算紀錄，之前的帳目保留在歷史中
 export const addSettlement = (settlement) => appendRecord(settlement);
 
-// 刪除單筆紀錄（記錯帳、清測試資料用）。硬刪除，不留 tombstone —— 兩人共用
+// 刪除紀錄（記錯帳、清測試資料用）。硬刪除，不留 tombstone —— 兩人共用
 // 一份資料且沒有稽核需求，留著反而要在每個計算點過濾
-export const deleteExpense = (path) => {
-  if (!path) throw new Error('缺少要刪除的紀錄識別碼');
-  return remove(ref(database, `${EXPENSES_PATH}/${path}`));
+//
+// 一律走多路徑 update：已結清的那批帳目必須連同結清紀錄一起消失，
+// 中途失敗會留下一張對不起來的結清單。update 是原子的，全成或全不成
+export const deleteRecords = (paths) => {
+  const targets = (paths || []).filter(Boolean);
+  if (targets.length === 0) throw new Error('缺少要刪除的紀錄識別碼');
+
+  const updates = {};
+  targets.forEach(path => { updates[path] = null; });
+  return update(ref(database, EXPENSES_PATH), updates);
 };

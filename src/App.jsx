@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Dashboard from './pages/Dashboard';
 import ExpenseForm from './components/ExpenseForm';
 import LoginForm from './components/LoginForm';
-import { subscribeExpenses, addExpense, addSettlement, deleteExpense } from './services/sheetService';
+import { subscribeExpenses, addExpense, addSettlement, deleteRecords } from './services/sheetService';
 import { buildSettlementRecord, normalizeMember, MEMBER_EMOJI } from './utils/balance';
 import { auth, logoutUser } from './config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -73,10 +73,11 @@ function App() {
   };
 
   // 硬刪除，救不回來。確認對話框由按鈕所在的元件負責（同結清的作法）
-  const handleDeleteExpense = async (expense) => {
+  // 收整批 records：已結清的帳目只能連同結清紀錄一起刪，不接受單筆
+  const handleDeleteRecords = async (records) => {
     try {
-      await deleteExpense(expense.path);
-      console.log('🗑️ 已刪除紀錄:', expense.description);
+      await deleteRecords(records.map(record => record.path));
+      console.log('🗑️ 已刪除', records.length, '筆紀錄');
     } catch (deleteError) {
       console.error('刪除失敗:', deleteError);
       setError('刪除失敗，請確認網路連線後再試');
@@ -138,7 +139,7 @@ function App() {
               expenses={expenses}
               onAddClick={() => setShowForm(!showForm)}
               onClear={handleClearExpenses}
-              onDelete={handleDeleteExpense}
+              onDelete={handleDeleteRecords}
             />
 
             {showForm && (

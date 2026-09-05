@@ -50,11 +50,13 @@ function RecordMeta({ createdBy, timestamp, tone = 'milktea', action }) {
   );
 }
 
+// 已結清的帳目不給單筆刪除：結清金額是從那整批帳目算出來的，
+// 抽掉其中一筆，那張結清紀錄就對不起來了。要刪只能連同結清紀錄整批刪
 function ExpenseRow({ expense, settled, onDelete }) {
   const handleDelete = () => {
     const shared = formatAmount(getSharedAmount(expense));
     if (window.confirm(`確定刪除「${expense.description}」（$${shared}）嗎？刪除後無法復原，結餘會立刻重算。`)) {
-      onDelete(expense);
+      onDelete([expense]);
     }
   };
 
@@ -83,7 +85,11 @@ function ExpenseRow({ expense, settled, onDelete }) {
       <RecordMeta
         createdBy={expense.createdBy}
         timestamp={expense.timestamp}
-        action={<DeleteButton onClick={handleDelete} label={`刪除 ${expense.description}`} />}
+        action={
+          settled ? null : (
+            <DeleteButton onClick={handleDelete} label={`刪除 ${expense.description}`} />
+          )
+        }
       />
     </article>
   );
@@ -95,13 +101,14 @@ function SettledGroup({ settlement, expenses, onDelete }) {
   const hasDetails = expenses.length > 0;
   const panelId = `settlement-${settlement.id}`;
 
-  // 刪掉結清紀錄等於拆掉一道分隔線，它之前的帳目會重新併回當期結餘
+  // 結清紀錄與它底下的明細是一個整體，只能一起刪 —— 留下任何一半，
+  // 帳都對不起來（留明細會讓舊帳併回當期結餘，留結清單則金額沒有依據）
   const handleDelete = () => {
-    const warning = hasDetails
-      ? `刪除這筆結清後，它底下的 ${expenses.length} 筆帳目會重新併入未結清結餘。`
-      : '刪除後無法復原。';
-    if (window.confirm(`確定刪除結清紀錄「${settlement.description}」嗎？${warning}`)) {
-      onDelete(settlement);
+    const scope = hasDetails
+      ? `這次結清與底下 ${expenses.length} 筆帳目會一起刪除`
+      : '這筆結清紀錄會被刪除';
+    if (window.confirm(`確定整批刪除「${settlement.description}」嗎？${scope}，刪除後無法復原。`)) {
+      onDelete([settlement, ...expenses]);
     }
   };
 
@@ -163,7 +170,7 @@ function SettledGroup({ settlement, expenses, onDelete }) {
           action={
             <DeleteButton
               onClick={handleDelete}
-              label={`刪除結清紀錄 ${settlement.description}`}
+              label={`整批刪除結清紀錄 ${settlement.description}`}
               tone="matcha"
             />
           }
@@ -173,8 +180,11 @@ function SettledGroup({ settlement, expenses, onDelete }) {
       {hasDetails && isOpen && (
         <div id={panelId} className="ml-4 space-y-2">
           {[...expenses].reverse().map(expense => (
-            <ExpenseRow key={expense.id} expense={expense} settled onDelete={onDelete} />
+            <ExpenseRow key={expense.id} expense={expense} settled />
           ))}
+          <p className="px-1 text-xs text-milktea-800">
+            已結清的帳目不能單筆刪除，請用結清紀錄上的刪除鈕整批刪。
+          </p>
         </div>
       )}
     </div>
