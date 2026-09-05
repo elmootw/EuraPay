@@ -1,5 +1,5 @@
 import { database } from '../config/firebase';
-import { ref, push, onValue } from 'firebase/database';
+import { ref, push, onValue, remove } from 'firebase/database';
 
 const STORAGE_KEY = 'eurapay_expenses';
 const EXPENSES_PATH = 'expenses';
@@ -16,9 +16,12 @@ const readCache = () => {
 
 // Firebase 的 key 就是每筆帳目的識別碼；舊資料自帶 id 則沿用
 // 一律依 timestamp 排序，不依賴 key 的排序規則
+//
+// `path` 一律是 Firebase 的 key，刪除時只認它：舊資料的 `id` 可能與 key 不同，
+// 拿 `id` 去組路徑會刪到不存在的節點（或別人的節點）
 const normalize = (value) =>
   Object.entries(value || {})
-    .map(([key, expense]) => ({ ...expense, id: expense?.id ?? key }))
+    .map(([key, expense]) => ({ ...expense, id: expense?.id ?? key, path: key }))
     .filter(expense => expense && expense.timestamp)
     .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 
@@ -55,3 +58,10 @@ export const addExpense = (expense) => appendRecord(expense);
 
 // 結清只是再記一筆結算紀錄，之前的帳目保留在歷史中
 export const addSettlement = (settlement) => appendRecord(settlement);
+
+// 刪除單筆紀錄（記錯帳、清測試資料用）。硬刪除，不留 tombstone —— 兩人共用
+// 一份資料且沒有稽核需求，留著反而要在每個計算點過濾
+export const deleteExpense = (path) => {
+  if (!path) throw new Error('缺少要刪除的紀錄識別碼');
+  return remove(ref(database, `${EXPENSES_PATH}/${path}`));
+};

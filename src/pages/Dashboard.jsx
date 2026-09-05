@@ -3,7 +3,7 @@ import BalanceCard from '../components/BalanceCard';
 import ExpenseList from '../components/ExpenseList';
 import { calculateBalance, getActiveExpenses, getMemberBalances } from '../utils/balance';
 
-function Dashboard({ expenses, onAddClick, onClear }) {
+function Dashboard({ expenses, onAddClick, onClear, onDelete }) {
   const balanceInfo = useMemo(() => calculateBalance(expenses), [expenses]);
   const activeCount = useMemo(() => getActiveExpenses(expenses).length, [expenses]);
   const memberBalances = useMemo(() => getMemberBalances(expenses), [expenses]);
@@ -43,7 +43,7 @@ function Dashboard({ expenses, onAddClick, onClear }) {
         </button>
       </div>
 
-      <ExpenseList expenses={expenses} />
+      <ExpenseList expenses={expenses} onDelete={onDelete} />
     </div>
   );
 }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Dashboard from './pages/Dashboard';
 import ExpenseForm from './components/ExpenseForm';
 import LoginForm from './components/LoginForm';
-import { subscribeExpenses, addExpense, addSettlement } from './services/sheetService';
+import { subscribeExpenses, addExpense, addSettlement, deleteExpense } from './services/sheetService';
 import { buildSettlementRecord, normalizeMember, MEMBER_EMOJI } from './utils/balance';
 import { auth, logoutUser } from './config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -72,6 +72,17 @@ function App() {
     }
   };
 
+  // 硬刪除，救不回來。確認對話框由按鈕所在的元件負責（同結清的作法）
+  const handleDeleteExpense = async (expense) => {
+    try {
+      await deleteExpense(expense.path);
+      console.log('🗑️ 已刪除紀錄:', expense.description);
+    } catch (deleteError) {
+      console.error('刪除失敗:', deleteError);
+      setError('刪除失敗，請確認網路連線後再試');
+    }
+  };
+
   const handleClearExpenses = async () => {
     try {
       const settlement = withCreator(buildSettlementRecord(expenses));
@@ -127,6 +138,7 @@ function App() {
               expenses={expenses}
               onAddClick={() => setShowForm(!showForm)}
               onClear={handleClearExpenses}
+              onDelete={handleDeleteExpense}
             />
 
             {showForm && (
